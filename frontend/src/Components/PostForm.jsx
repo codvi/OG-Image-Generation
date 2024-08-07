@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
+import { Helmet } from 'react-helmet';
 
 const PostForm = () => {
   const [title, setTitle] = useState('');
@@ -8,6 +9,7 @@ const PostForm = () => {
   const [imagePreview, setImagePreview] = useState('');
   const [posts, setPosts] = useState([]);
   const [likes, setLikes] = useState({});
+  const [ogImage, setOgImage] = useState('');
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
@@ -26,16 +28,16 @@ const PostForm = () => {
     formData.append('posterName', 'developersIndia'); 
   
     try {
-      const response = await axios.post('http://localhost:3000/generate-og-image', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-        responseType: 'blob',
-      });
+      const response = await axios.post('https://backend-og.onrender.com/generate-og-image', formData);
   
-      const url = URL.createObjectURL(response.data);
-      const newPost = { title, content: truncatedContent, imageUrl: url, posterName: 'User Name' }; // Use truncated content
-      setPosts([newPost, ...posts]); 
+      const newPost = { 
+        title, 
+        content: truncatedContent, 
+        imageUrl: `https://backend-og.onrender.com/${response.data.imageUrl}`, 
+        posterName: 'User Name' 
+      };
+      setPosts([newPost, ...posts]);
+      setOgImage(`https://backend-og.onrender.com/${response.data.imageUrl}`);
   
       setTitle('');
       setContent('');
@@ -46,14 +48,16 @@ const PostForm = () => {
     }
   };
   
-
   const handleLike = (index) => {
     const newLikes = { ...likes, [index]: (likes[index] || 0) + 1 };
     setLikes(newLikes);
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-8">
+    <div className="max-w-5xl mx-auto p-8 bg-sky-100">
+      <Helmet>
+        {ogImage && <meta property="og:image" content={ogImage} />}
+      </Helmet>
       <div className="p-8 border border-gray-300 rounded-lg bg-white shadow-lg mb-12">
         <h1 className="text-3xl font-bold mb-8 text-gray-800">Create a New Post</h1>
         
